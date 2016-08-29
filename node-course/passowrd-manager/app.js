@@ -1,3 +1,4 @@
+
 var storage=require('node-persist');
 //initilize node-persist
 storage.initSync();
@@ -51,38 +52,70 @@ var argv = require('yargs')
 
 // set the command
 var command=argv._[0];            
+//return accounts array
+function getAccounts(masterPassword){
+    var encryptedAccounts =storage.getItemSync('accounts');
+    var accounts=[];
+    if(typeof encryptedAccounts!=='undefined'){
+        var bytes = crypto.AES.decrypt(encryptedAccounts,masterPassword);
+        accounts =JSON.parse(bytes.toString(crypto.enc.Utf8));
+    }
+    return accounts;
+}
+
+//save account
+function saveAccounts(accounts,masterPassword){    
+    var encrytAccount = crypto.AES.encrypt(JSON.stringify(accounts),masterPassword);
+    storage.setItemSync('account',encrytAccount.toString());
+    return accounts;
+
+}
 
 //create account function
 function createAccount(account,masterPassword){
-    if(typeof accounts==='undefined'){
-        accounts=[];
+    var accounts=getAccounts(masterPassword);
         accounts.push(account);
-        var encryptAccount = crypto.AES.encrypt(account,masterPassword)
-        storage.setItemSync('accounts',accounts)
-    }
+        saveAccounts(accounts,masterPassword);
     return account;
 }
 
-function getAccount(name,masterPassword){
-    var matchAccount;
-    var accounts = storage.getItemSync('accounts');
+function getAccount(accountName,masterPassword){
+    var accounts = getAccounts(masterPassword);
+    var matchAccount;    
     accounts.forEach(function(account) {        
-        if(account.name===name){
+        if(account.name===accountName){
             matchAccount=account;
         }
-    })
+    });
     return matchAccount;
 }
 
 if(command==='create'){
-    createAccount({
+   try{
+    var craateAccount = createAccount({
         name: argv.name,
         username: argv.username,
         password: argv.password        
-    },argv.masterPassword)
+    },argv.masterPassword);
+    console.log('create account');
+    console.log(createAccount)
+   } catch (e)
+   {
+       console.log('unable to create account')
+   }
 }
 else if(command==='get'){
-    var account= getAccount(argv.name);
-    console.log(account);
+    try{
+        var account= getAccount(argv.name,argv.masterPassword);
+        if(typeof account ==='undefined'){
+            console.log('account not found');
+        }
+        else{
+            console.log('your account is ');
+            console.log(account);
+        }
+    }catch(e){
+        console.log('unable to fetch account')
+    }
 }
 
