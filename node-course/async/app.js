@@ -1,17 +1,32 @@
 var request = require('request');
-var url = 'http://api.openweathermap.org/data/2.5/weather?APPID=60bfe06501e99d26bfffeef43a84c5cf&q=newyork&units=imperial';
+var argv = require('yargs')
+		  .command('location', 'enter your location', function(yargs){
+			  yargs.options({
+				  location:{
+					  demand: true,
+					  alias: 'l',
+					  description:'enter location'
+				  }
+			  })
+		  })
+		  .argv;
+var command= argv._[0];
+//var url = 'http://api.openweathermap.org/data/2.5/weather?APPID=60bfe06501e99d26bfffeef43a84c5cf&q=newyork&units=imperial';
 var weather =require('./weather.js');
 var location= require('./location.js')
 
-weather(function(currentWeather){
-	console.log(currentWeather);
-})
+if(command==='location'){
+	weather(argv.location, function(callBack){
+			console.log(body.main.temp + '  ' + body.name)
+	})
+}
 
+/*
 location(function(location){
 	console.log(location.city);
 	console.log(location.loc)
 })
-
+*/
 /*request({
 	url: url,
 	json: true
